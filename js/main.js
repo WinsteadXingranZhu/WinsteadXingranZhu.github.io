@@ -306,7 +306,8 @@
             $('<div class="close">Close</div>')
               .appendTo($this)
               .on('click', function() {
-                location.hash = '';
+                // location.hash = '';
+                window.location.href = 'index.html'; // Change the window's location.
               });
 
           // Prevent clicks from inside article from bubbling.
