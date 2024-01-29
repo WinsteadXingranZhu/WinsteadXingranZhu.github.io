@@ -1193,6 +1193,12 @@ div.gallery {
   width: 180px;
 }
 
+.gallery-photo {
+  width: 300px; /* adjust to desired width */
+  height: 300px; /* adjust to desired height */
+  object-fit: cover; /* this will cover the entire space of the image without distortion */
+}
+
 div.gallery:hover {
   border: 1px none #777;
 }
