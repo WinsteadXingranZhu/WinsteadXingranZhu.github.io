@@ -1194,8 +1194,8 @@ div.gallery {
 }
 
 .gallery-photo {
-  width: 100px; /* adjust to desired width */
-  height: 100px; /* adjust to desired height */
+  width: 300px; /* adjust to desired width */
+  height: 300px; /* adjust to desired height */
   object-fit: cover; /* this will cover the entire space of the image without distortion */
 }
 
