@@ -1,64 +1,44 @@
-<!DOCTYPE HTML>
-<html>
-   <head>
-      <meta name="generator" content="Hugo 0.76.5" />
-      <title>Winstead Xingran Zhu</title>
-      <meta charset="utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-      <link rel="stylesheet" href="css/main.css" />
-      <link rel="stylesheet" href="css/project.css" />
-      <noscript>
-         <link rel="stylesheet" href="css/noscript.css" />
-      </noscript>
-      <link rel="icon" href="icons/favicon_persimmon.ico">
-   </head>
-   <script src="js/jquery.min.js"></script>
-   <body>
-      <div id="wrapper">
-         <header id="header">
-            <div class="content">
-               <div class="inner">
-                  <img src="images/elephant.png">
-                  <p>
-                     Winstead Xingran Zhu
-                  </p>
-               </div>
-            </div>
-            <nav>
-               <ul>
-                  <li><a href="#about">About</a></li>
-                  <li><a href="#experience">Experience</a></li>
-                  <li><a href="#gallery">Gallery</a></li>
-                  <li><a href="#random">Random thoughts</a></li>
-               </ul>
-            </nav>
-            <iframe src="https://open.spotify.com/embed/track/0OYY8gTawcRMx8Pg52dvBk" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-         </header>
-         <div id="main"></div>
-         <div id="languages">
-         </div>
-         <footer id="footer">
-            <p class="copyright">&copy; Winstead.</p>
-         </footer>
-      </div>
-      <div id="bg"></div>
-      <script src="js/skel.min.js"></script>
-      <script src="js/util.js"></script>
-      <script>
-         Promise.all([
-            fetch('_about.html').then(function(r) { return r.text(); }),
-            fetch('_experience.html').then(function(r) { return r.text(); }),
-            fetch('_gallery.html').then(function(r) { return r.text(); }),
-            fetch('_random.html').then(function(r) { return r.text(); })
-         ]).then(function(sections) {
-            var main = document.getElementById('main');
-            sections.forEach(function(html) {
-               main.insertAdjacentHTML('beforeend', html);
-            });
-            var script = document.createElement('script');
-            script.src = 'js/main.js';
-            document.body.appendChild(script);
-         });
-      </script>
-   </body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The personal website of Winstead Xingran Zhu — engineering, photography, and notes from the mat.">
+    <meta property="og:title" content="Winstead Xingran Zhu">
+    <meta property="og:description" content="Engineering, photography, and notes from the mat.">
+    <meta property="og:image" content="https://winsteadxingranzhu.github.io/og.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Winstead Xingran Zhu">
+    <meta name="twitter:description" content="Engineering, photography, and notes from the mat.">
+    <meta name="twitter:image" content="https://winsteadxingranzhu.github.io/og.png">
+    <title>Winstead Xingran Zhu</title>
+    <link rel="icon" href="icons/favicon_persimmon.ico">
+    <link rel="stylesheet" href="css/redesign.css?v=15">
+  </head>
+  <body class="home">
+    <a class="skip-link" href="#content">Skip to content</a>
+
+    <header class="site-header">
+      <nav aria-label="Primary navigation">
+        <a href="about.html">About</a>
+        <a href="engineering.html">Thought Lab</a>
+        <a href="photography.html">Shots</a>
+        <a href="mat-notes.html">Mat Notes</a>
+      </nav>
+    </header>
+
+    <main id="content">
+      <section class="hero home-hero">
+        <figure class="hero-mark">
+          <img src="images/elephant.png" alt="A watercolor elephant wearing an orange cloth">
+        </figure>
+        <h1>Winstead Xingran Zhu</h1>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© Winstead.</p>
+    </footer>
+  </body>
 </html>
