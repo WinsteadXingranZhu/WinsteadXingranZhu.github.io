@@ -1,4 +1,36 @@
 const lightbox = document.querySelector("#shot-lightbox");
+const collage = document.querySelector(".shots-collage");
+
+if (collage) {
+  const shots = [...collage.querySelectorAll(".shot")];
+
+  const sizeShots = () => {
+    const styles = getComputedStyle(collage);
+    const rowHeight = Number.parseFloat(styles.gridAutoRows);
+    const rowGap = Number.parseFloat(styles.rowGap);
+
+    shots.forEach((shot) => {
+      shot.style.gridRowEnd = "auto";
+      const height = shot.querySelector(".shot-open").getBoundingClientRect().height;
+      const rowSpan = Math.ceil((height + rowGap) / (rowHeight + rowGap));
+      shot.style.gridRowEnd = `span ${rowSpan}`;
+    });
+  };
+
+  let resizeFrame;
+  const scheduleSizing = () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(sizeShots);
+  };
+
+  shots.forEach((shot) => {
+    const image = shot.querySelector("img");
+    if (!image.complete) image.addEventListener("load", scheduleSizing, { once: true });
+  });
+
+  window.addEventListener("resize", scheduleSizing);
+  scheduleSizing();
+}
 
 if (lightbox) {
   const expandedImage = lightbox.querySelector("img");
