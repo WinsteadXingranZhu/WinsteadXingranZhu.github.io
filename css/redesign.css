@@ -578,10 +578,11 @@ h1, h2, h3 {
 .shots-gallery { padding: clamp(1rem, 2.5vw, 2rem) 0 clamp(6rem, 10vw, 10rem); }
 
 .shots-collage {
+  column-gap: clamp(.5rem, 1vw, .75rem);
   display: grid;
-  gap: clamp(.8rem, 1.8vw, 1.6rem);
-  grid-auto-rows: 8px;
+  grid-auto-rows: 1px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  row-gap: 4px;
 }
 
 .shot {
