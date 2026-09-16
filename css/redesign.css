@@ -135,6 +135,10 @@ nav {
   animation-timing-function: cubic-bezier(.22, .8, .3, 1);
 }
 
+::view-transition-group(flower-player) { animation: none; }
+
+main[tabindex="-1"]:focus { outline: none; }
+
 nav a {
   border-radius: 999px;
   padding: .5rem 0;
@@ -908,6 +912,7 @@ h1, h2, h3 {
   isolation: isolate;
   position: fixed;
   right: calc(env(safe-area-inset-right) - .75rem);
+  view-transition-name: flower-player;
   z-index: 40;
 }
 

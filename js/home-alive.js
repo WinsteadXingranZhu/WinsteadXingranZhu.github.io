@@ -1,10 +1,17 @@
-const hero = document.querySelector(".home-hero");
-const mark = document.querySelector(".living-mark");
-const canvas = document.querySelector(".elephant-aura");
-const elephant = mark?.querySelector("img");
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let cleanupHomeAlive = () => {};
+
+const initializeHomeAlive = () => {
+  cleanupHomeAlive();
+  cleanupHomeAlive = () => {};
+
+  const hero = document.querySelector(".home-hero");
+  const mark = document.querySelector(".living-mark");
+  const canvas = document.querySelector(".elephant-aura");
+  const elephant = mark?.querySelector("img");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 if (hero && mark && canvas && elephant && !reduceMotion.matches) {
+  const lifecycle = new AbortController();
   const context = canvas.getContext("2d");
   const pointer = { active: false, x: 0, y: 0, energy: 0 };
   let canvasRect;
@@ -169,22 +176,33 @@ if (hero && mark && canvas && elephant && !reduceMotion.matches) {
     resizeFrame = requestAnimationFrame(buildParticles);
   };
 
-  hero.addEventListener("pointermove", updatePointer);
-  hero.addEventListener("pointerleave", () => { pointer.active = false; });
-  window.addEventListener("resize", scheduleBuild);
+  hero.addEventListener("pointermove", updatePointer, { signal: lifecycle.signal });
+  hero.addEventListener("pointerleave", () => { pointer.active = false; }, { signal: lifecycle.signal });
+  window.addEventListener("resize", scheduleBuild, { signal: lifecycle.signal });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       cancelAnimationFrame(animationFrame);
     } else {
       animationFrame = requestAnimationFrame(animate);
     }
-  });
+  }, { signal: lifecycle.signal });
 
   const start = () => {
     buildParticles();
     animationFrame = requestAnimationFrame(animate);
   };
 
+  cleanupHomeAlive = () => {
+    lifecycle.abort();
+    cancelAnimationFrame(resizeFrame);
+    cancelAnimationFrame(animationFrame);
+  };
+
   if (elephant.complete) start();
-  else elephant.addEventListener("load", start, { once: true });
+  else elephant.addEventListener("load", start, { once: true, signal: lifecycle.signal });
 }
+};
+
+document.addEventListener("site:before-navigate", () => cleanupHomeAlive());
+document.addEventListener("site:navigated", initializeHomeAlive);
+initializeHomeAlive();

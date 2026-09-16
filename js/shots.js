@@ -1,5 +1,13 @@
-const lightbox = document.querySelector("#shot-lightbox");
-const collage = document.querySelector(".shots-collage");
+let cleanupShots = () => {};
+
+const initializeShots = () => {
+  cleanupShots();
+  cleanupShots = () => {};
+
+  const lifecycle = new AbortController();
+  const lightbox = document.querySelector("#shot-lightbox");
+  const collage = document.querySelector(".shots-collage");
+  let resizeFrame;
 
 if (collage) {
   const shots = [...collage.querySelectorAll(".shot")];
@@ -17,7 +25,6 @@ if (collage) {
     });
   };
 
-  let resizeFrame;
   const scheduleSizing = () => {
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(sizeShots);
@@ -25,10 +32,10 @@ if (collage) {
 
   shots.forEach((shot) => {
     const image = shot.querySelector("img");
-    if (!image.complete) image.addEventListener("load", scheduleSizing, { once: true });
+    if (!image.complete) image.addEventListener("load", scheduleSizing, { once: true, signal: lifecycle.signal });
   });
 
-  window.addEventListener("resize", scheduleSizing);
+  window.addEventListener("resize", scheduleSizing, { signal: lifecycle.signal });
   scheduleSizing();
 }
 
@@ -48,15 +55,25 @@ if (lightbox) {
       expandedYear.textContent = button.dataset.year;
       document.body.classList.add("lightbox-open");
       lightbox.showModal();
-    });
+    }, { signal: lifecycle.signal });
   });
 
-  closeButton.addEventListener("click", () => lightbox.close());
+  closeButton.addEventListener("click", () => lightbox.close(), { signal: lifecycle.signal });
   lightbox.addEventListener("click", (event) => {
     if (event.target === lightbox) lightbox.close();
-  });
+  }, { signal: lifecycle.signal });
   lightbox.addEventListener("close", () => {
     document.body.classList.remove("lightbox-open");
     expandedImage.removeAttribute("src");
-  });
+  }, { signal: lifecycle.signal });
 }
+  cleanupShots = () => {
+    if (lightbox?.open) lightbox.close();
+    lifecycle.abort();
+    cancelAnimationFrame(resizeFrame);
+  };
+};
+
+document.addEventListener("site:before-navigate", () => cleanupShots());
+document.addEventListener("site:navigated", initializeShots);
+initializeShots();
