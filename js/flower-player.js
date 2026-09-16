@@ -1,5 +1,5 @@
 (() => {
-const FLOWER_PLAYER_STATE = "winstead-flower-player";
+const FLOWER_PLAYER_STATE = "winstead-flower-player-v2";
 
 // Define the public playlist here. Visitors can only play the tracks in this list.
 const flowerPlaylist = [
@@ -104,11 +104,13 @@ let flowerHovered = false;
 let audioContext;
 let analyser;
 let frequencyData;
+let playbackGestureController;
 
 const savedState = (() => {
   try { return JSON.parse(sessionStorage.getItem(FLOWER_PLAYER_STATE)) || {}; }
   catch { return {}; }
 })();
+let wantsPlayback = savedState.playing ?? true;
 
 const formatTime = (seconds) => {
   if (!Number.isFinite(seconds)) return "0:00";
@@ -119,7 +121,7 @@ const formatTime = (seconds) => {
 const saveState = () => {
   sessionStorage.setItem(FLOWER_PLAYER_STATE, JSON.stringify({
     currentTime: audio.currentTime || 0,
-    playing: !audio.paused,
+    playing: wantsPlayback,
     trackIndex,
     trackSrc: flowerPlaylist[trackIndex].src
   }));
@@ -173,7 +175,9 @@ const loadTrack = (index, resumeAt = 0) => {
 
 const connectAudio = () => {
   if (audioContext) return;
-  audioContext = new AudioContext();
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  audioContext = new AudioContextClass();
   analyser = audioContext.createAnalyser();
   analyser.fftSize = 64;
   frequencyData = new Uint8Array(analyser.frequencyBinCount);
@@ -182,29 +186,62 @@ const connectAudio = () => {
   analyser.connect(audioContext.destination);
 };
 
+const disarmPlaybackGesture = () => {
+  playbackGestureController?.abort();
+  playbackGestureController = undefined;
+};
+
+const requestPlayback = async ({ armOnFailure = true } = {}) => {
+  wantsPlayback = true;
+  saveState();
+
+  try {
+    connectAudio();
+    const playAttempt = audio.play();
+    const contextAttempt = audioContext?.state === "suspended" ? audioContext.resume() : Promise.resolve();
+    await Promise.all([playAttempt, contextAttempt]);
+    disarmPlaybackGesture();
+    return true;
+  } catch {
+    if (armOnFailure) armPlaybackGesture();
+    return false;
+  }
+};
+
+const resumeOnGesture = (event) => {
+  if (player.contains(event.target)) return;
+  requestPlayback();
+};
+
+const armPlaybackGesture = () => {
+  if (playbackGestureController || !wantsPlayback) return;
+  playbackGestureController = new AbortController();
+  const options = { capture: true, signal: playbackGestureController.signal };
+  document.addEventListener("pointerdown", resumeOnGesture, options);
+  document.addEventListener("keydown", resumeOnGesture, options);
+};
+
 const togglePlayback = async () => {
-  connectAudio();
-  if (audioContext.state === "suspended") await audioContext.resume();
-  if (audio.paused) await audio.play();
-  else audio.pause();
+  if (audio.paused) {
+    await requestPlayback();
+  } else {
+    wantsPlayback = false;
+    disarmPlaybackGesture();
+    audio.pause();
+    saveState();
+  }
 };
 
 const changeTrack = async (direction) => {
-  const wasPlaying = !audio.paused;
+  const shouldPlay = wantsPlayback;
   loadTrack(trackIndex + direction);
-  if (wasPlaying) {
-    connectAudio();
-    await audio.play();
-  }
+  if (shouldPlay) await requestPlayback();
 };
 
 const selectTrack = async (index) => {
-  const wasPlaying = !audio.paused;
+  const shouldPlay = wantsPlayback;
   loadTrack(index);
-  if (wasPlaying) {
-    connectAudio();
-    await audio.play();
-  }
+  if (shouldPlay) await requestPlayback();
 };
 
 const setOpen = (isOpen) => {
@@ -219,7 +256,10 @@ const setOpen = (isOpen) => {
   }
 };
 
-toggle.addEventListener("click", () => setOpen(player.dataset.open !== "true"));
+toggle.addEventListener("click", () => {
+  setOpen(player.dataset.open !== "true");
+  if (wantsPlayback && audio.paused) requestPlayback();
+});
 toggle.addEventListener("pointerenter", () => { flowerHovered = true; });
 toggle.addEventListener("pointerleave", () => { flowerHovered = false; });
 
@@ -256,9 +296,12 @@ progress.addEventListener("input", () => {
 });
 
 audio.addEventListener("play", () => {
+  wantsPlayback = true;
+  disarmPlaybackGesture();
   player.dataset.playing = "true";
   playButton.textContent = "Ⅱ";
   playButton.setAttribute("aria-label", "Pause");
+  saveState();
 });
 
 audio.addEventListener("pause", () => {
@@ -360,5 +403,6 @@ const legacyTrackIndex = Number.isInteger(savedState.trackIndex)
   ? (savedState.trackIndex + flowerPlaylist.length - 1) % flowerPlaylist.length
   : 0;
 loadTrack(savedTrackIndex >= 0 ? savedTrackIndex : legacyTrackIndex, savedState.currentTime || 0);
+if (wantsPlayback) requestAnimationFrame(() => requestPlayback());
 requestAnimationFrame(drawFlower);
 })();
